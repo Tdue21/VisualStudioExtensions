@@ -1,36 +1,38 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Globalization;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
-using Microsoft.Win32;
+using System.Threading;
+using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.OLE.Interop;
+
 using Microsoft.VisualStudio.Shell;
-using EnvDTE;
+using Task = System.Threading.Tasks.Task;
 
 namespace GrzegorzKozub.VisualStudioExtensions.TotalCommanderLauncher
 {
     [Guid(Guids.Package)]
-    [InstalledProductRegistration("#1", "#2", "1.5.1.0", IconResourceID = 3)]
-    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [InstalledProductRegistration("#1", "#2", "1.6.0.0", IconResourceID = 3)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideOptionPage(typeof(Options), "Total Commander Launcher", "General", 0, 0, false)]
-    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string)]
-    public sealed class TotalCommanderLauncherPackage : Package
+    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_string, PackageAutoLoadFlags.BackgroundLoad)]
+    public sealed class TotalCommanderLauncherPackage : AsyncPackage
     {
         private IMenuCommandService _menuCommandService;
         private IVsUIShell _uiShell;
 
         #region Package Members
 
-        protected override void Initialize()
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            base.Initialize();
+            await base.InitializeAsync(cancellationToken, progress);
 
-            _menuCommandService = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            _uiShell = GetService(typeof(SVsUIShell)) as IVsUIShell;
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            _menuCommandService = await GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
+            _uiShell            = await GetServiceAsync(typeof(SVsUIShell)) as IVsUIShell;
 
             AddMenuCommand(CommandIds.TotalCommander, HandleTotalCommanderMenuCommand, options => true);
         }

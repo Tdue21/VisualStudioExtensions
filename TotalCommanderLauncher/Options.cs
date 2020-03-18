@@ -119,7 +119,7 @@ namespace GrzegorzKozub.VisualStudioExtensions.TotalCommanderLauncher
 
             if (validationErrors != null)
             {
-                MessageBox.Show(validationErrors, "ConEmu Launcher", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(validationErrors, "Total Commander Launcher", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 e.ApplyBehavior = ApplyKind.CancelNoNavigate;
             }
             else
